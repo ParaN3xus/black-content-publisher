@@ -9,22 +9,18 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using VRChatContentPublisher.App.Dialogs;
 using VRChatContentPublisher.App.Pages;
-using VRChatContentPublisher.App.Pages.GettingStarted;
 using VRChatContentPublisher.App.Pages.HomeTab;
 using VRChatContentPublisher.App.Pages.Settings;
 using VRChatContentPublisher.App.Services;
 using VRChatContentPublisher.App.ViewModels;
 using VRChatContentPublisher.App.ViewModels.Data;
-using VRChatContentPublisher.App.ViewModels.Data.Connect;
 using VRChatContentPublisher.App.ViewModels.Data.PublishTasks;
 using VRChatContentPublisher.App.ViewModels.Dialogs;
 using VRChatContentPublisher.App.ViewModels.Pages;
-using VRChatContentPublisher.App.ViewModels.Pages.GettingStarted;
 using VRChatContentPublisher.App.ViewModels.Pages.HomeTab;
 using VRChatContentPublisher.App.ViewModels.Pages.Settings;
 using VRChatContentPublisher.App.ViewModels.Settings;
 using VRChatContentPublisher.App.Views;
-using VRChatContentPublisher.App.Views.Data.Connect;
 using VRChatContentPublisher.App.Views.Data.PublishTasks;
 using VRChatContentPublisher.App.Views.Data.Settings;
 using VRChatContentPublisher.App.Views.Settings;
@@ -70,12 +66,7 @@ public partial class App : Application
 
         // HomePage Tabs
         ViewLocator.Register<HomeTasksPageViewModel, HomeTasksPage>();
-
-        // Getting Started Pages
-        ViewLocator.Register<GuideWelcomePageViewModel, GuideWelcomePage>();
-        ViewLocator.Register<GuideSetupUnityPageViewModel, GuideSetupUnityPage>();
-        ViewLocator.Register<GuideOpenConnectSettingsPageViewModel, GuideOpenConnectSettingsPage>();
-        ViewLocator.Register<GuideConnectUnityPageViewModel, GuideConnectUnityPage>();
+        ViewLocator.Register<HomeManualUploadPageViewModel, HomeManualUploadPage>();
 
         // Settings Pages
         ViewLocator.Register<SettingsFixAccountPageViewModel, SettingsFixAccountPage>();
@@ -84,8 +75,8 @@ public partial class App : Application
 
         // Dialogs
         ViewLocator.Register<TwoFactorAuthDialogViewModel, TwoFactorAuthDialog>();
-        ViewLocator.Register<RequestChallengeDialogViewModel, RequestChallengeDialog>();
         ViewLocator.Register<ExitAppDialogViewModel, ExitAppDialog>();
+        ViewLocator.Register<ConfirmWorldSignatureDialogViewModel, ConfirmWorldSignatureDialog>();
 
         // Data
         ViewLocator.Register<PublishTaskManagerViewModel, PublishTaskManagerView>();
@@ -93,15 +84,12 @@ public partial class App : Application
         ViewLocator.Register<PublishTaskViewModel, PublishTaskView>();
         ViewLocator.Register<PublishTaskManagerContainerViewModel, PublishTaskManagerContainerView>();
 
-        ViewLocator.Register<RpcClientSessionViewModel, RpcClientSessionView>();
         ViewLocator.Register<UserSessionViewModel, UserSessionView>();
 
         // Settings Section
-        ViewLocator.Register<ConnectSettingsViewModel, ConnectSettingsView>();
         ViewLocator.Register<AppearanceSettingsViewModel, AppearanceSettingsView>();
         ViewLocator.Register<HttpProxySettingsViewModel, HttpProxySettingsView>();
         ViewLocator.Register<AccountsSettingsViewModel, AccountsSettingsView>();
-        ViewLocator.Register<SessionsSettingsViewModel, SessionsSettingsView>();
         ViewLocator.Register<AboutSettingsViewModel, AboutSettingsView>();
         ViewLocator.Register<DebugSettingsViewModel, DebugSettingsView>();
 

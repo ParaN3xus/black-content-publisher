@@ -2,12 +2,10 @@
 using VRChatContentPublisher.App.Services;
 using VRChatContentPublisher.App.ViewModels;
 using VRChatContentPublisher.App.ViewModels.Data;
-using VRChatContentPublisher.App.ViewModels.Data.Connect;
 using VRChatContentPublisher.App.ViewModels.Data.PublishTasks;
 using VRChatContentPublisher.App.ViewModels.Dialogs;
 using VRChatContentPublisher.App.ViewModels.NetworkDiagnostic;
 using VRChatContentPublisher.App.ViewModels.Pages;
-using VRChatContentPublisher.App.ViewModels.Pages.GettingStarted;
 using VRChatContentPublisher.App.ViewModels.Pages.HomeTab;
 using VRChatContentPublisher.App.ViewModels.Pages.Settings;
 using VRChatContentPublisher.App.ViewModels.Settings;
@@ -21,6 +19,11 @@ public static class ServicesExtenstion
     public static IServiceCollection AddAppServices(this IServiceCollection services)
     {
         services.AddSingleton<AppWebImageLoader>();
+        services.AddHttpClient<ManualPublishApiService>(client =>
+        {
+            client.BaseAddress = new Uri("http://127.0.0.1:59328/v1/");
+            client.Timeout = TimeSpan.FromMinutes(10);
+        });
 
         services.AddSingleton<AppWindowService>();
         services.AddSingleton<IActivateWindowService>(s => s.GetRequiredService<AppWindowService>());
@@ -30,8 +33,8 @@ public static class ServicesExtenstion
 
         // Dialogs
         services.AddTransient<TwoFactorAuthDialogViewModelFactory>();
-        services.AddTransient<RequestChallengeDialogViewModelFactory>();
         services.AddTransient<ExitAppDialogViewModel>();
+        services.AddTransient<ConfirmWorldSignatureDialogViewModelFactory>();
 
         // ViewModels
         services.AddSingleton<MainWindowViewModel>();
@@ -52,16 +55,9 @@ public static class ServicesExtenstion
         services.AddTransient<InvalidSessionTaskManagerViewModelFactory>();
         services.AddTransient<PublishTaskManagerContainerViewModelFactory>();
 
-        services.AddTransient<RpcClientSessionViewModelFactory>();
-
         // HomePage Tabs
         services.AddSingleton<HomeTasksPageViewModel>();
-
-        // Getting Started Pages
-        services.AddTransient<GuideWelcomePageViewModel>();
-        services.AddTransient<GuideSetupUnityPageViewModel>();
-        services.AddTransient<GuideOpenConnectSettingsPageViewModel>();
-        services.AddTransient<GuideConnectUnityPageViewModel>();
+        services.AddSingleton<HomeManualUploadPageViewModel>();
 
         // Settings Pages
         services.AddTransient<AddAccountPageViewModelFactory>();
@@ -71,14 +67,12 @@ public static class ServicesExtenstion
         // Settings Sections
         services.AddTransient<AccountsSettingsViewModel>();
         services.AddTransient<AppearanceSettingsViewModel>();
-        services.AddTransient<ConnectSettingsViewModel>();
         services.AddTransient<HttpProxySettingsViewModel>();
-        services.AddTransient<SessionsSettingsViewModel>();
         services.AddTransient<AboutSettingsViewModel>();
         services.AddTransient<DebugSettingsViewModel>();
 
         // Connect Core
-        services.AddSingleton<IRequestChallengeService, RequestChallengeService>();
+        services.AddSingleton<IRequestChallengeService, DefaultRequestChallengeService>();
 
         return services;
     }

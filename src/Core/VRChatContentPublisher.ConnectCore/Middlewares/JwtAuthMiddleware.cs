@@ -14,7 +14,10 @@ public class JwtAuthMiddleware(ClientSessionService clientSessionService, ILogge
     {
         if (context.Request.Path.StartsWithSegments("/v1/auth/challenge") ||
             context.Request.Path.StartsWithSegments("/v1/auth/request-challenge") ||
-            context.Request.Path.StartsWithSegments("/v1/meta"))
+            context.Request.Path.StartsWithSegments("/v1/meta") ||
+            context.Request.Path.StartsWithSegments("/v1/files") ||
+            context.Request.Path.StartsWithSegments("/v1/tasks") ||
+            context.Request.Path.StartsWithSegments("/v1/health"))
         {
             await next();
             return;

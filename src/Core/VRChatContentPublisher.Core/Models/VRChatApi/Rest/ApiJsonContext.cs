@@ -23,6 +23,7 @@ namespace VRChatContentPublisher.Core.Models.VRChatApi.Rest;
 [JsonSerializable(typeof(VRChatApiAvatar))]
 [JsonSerializable(typeof(VRChatApiAvatar[]))]
 [JsonSerializable(typeof(CreateAvatarVersionRequest))]
+[JsonSerializable(typeof(CreateAvatarRequest))]
 [JsonSerializable(typeof(CreateFileRequest))]
 [JsonSerializable(typeof(CreateWorldRequest))]
 [JsonSerializable(typeof(VRChatApiWorld[]))]

@@ -165,6 +165,29 @@ public sealed partial class VRChatApiClient(
         return avatars;
     }
 
+    public async ValueTask<VRChatApiAvatar> CreateAvatarAsync(
+        CreateAvatarRequest createRequest,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "avatars")
+        {
+            Content = JsonContent.Create(createRequest, ApiJsonContext.Default.CreateAvatarRequest)
+        };
+
+        var response = await httpClient.SendAsync(request, cancellationToken);
+
+        await HandleErrorResponseAsync(response);
+
+        var avatar =
+            await response.Content.ReadFromJsonAsync(ApiJsonContext.Default.VRChatApiAvatar, cancellationToken);
+        if (avatar is null)
+            throw new UnexpectedApiBehaviourException("The API returned a null avatar object.");
+
+        return avatar;
+    }
+
     public async ValueTask<VRChatApiAvatar> CreateAvatarVersionAsync(string avatarId,
         CreateAvatarVersionRequest createRequest, CancellationToken cancellationToken = default)
     {
