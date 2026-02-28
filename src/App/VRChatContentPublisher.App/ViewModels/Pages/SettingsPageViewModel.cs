@@ -8,22 +8,18 @@ public sealed partial class SettingsPageViewModel(
     NavigationService navigationService,
     AccountsSettingsViewModel accountsSettingsViewModel,
     AppearanceSettingsViewModel appearanceSettingsViewModel,
-    ConnectSettingsViewModel connectSettingsViewModel,
     NotificationSettingsViewModel notificationSettingsViewModel,
-    SessionsSettingsViewModel sessionsSettingsViewModel,
     AboutSettingsViewModel aboutSettingsViewModel,
     HttpProxySettingsViewModel httpProxySettingsViewModel,
     DebugSettingsViewModel debugSettingsViewModel) : PageViewModelBase
 {
     public AccountsSettingsViewModel AccountsSettingsViewModel { get; } = accountsSettingsViewModel;
     public AppearanceSettingsViewModel AppearanceSettingsViewModel { get; } = appearanceSettingsViewModel;
-    public ConnectSettingsViewModel ConnectSettingsViewModel { get; } = connectSettingsViewModel;
     public NotificationSettingsViewModel NotificationSettingsViewModel { get; } = notificationSettingsViewModel;
-    public SessionsSettingsViewModel SessionsSettingsViewModel { get; } = sessionsSettingsViewModel;
     public HttpProxySettingsViewModel HttpProxySettingsViewModel { get; } = httpProxySettingsViewModel;
     public AboutSettingsViewModel AboutSettingsViewModel { get; } = aboutSettingsViewModel;
     public DebugSettingsViewModel DebugSettingsViewModel { get; } = debugSettingsViewModel;
-    
+
     [RelayCommand]
     private void NavigateToHome()
     {

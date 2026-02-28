@@ -21,7 +21,8 @@ public partial class HomePageViewModel : PageViewModelBase
     [ObservableProperty]
     public partial List<HomePageNavigationItem> Items { get; private set; } =
     [
-        new("Tasks", MaterialIconKind.ProgressUpload, typeof(HomeTasksPageViewModel))
+        new("Tasks", MaterialIconKind.ProgressUpload, typeof(HomeTasksPageViewModel)),
+        new("Manual", MaterialIconKind.Earth, typeof(HomeManualUploadPageViewModel))
     ];
 
     public bool IsPinned => _appWindowService.IsPinned();
