@@ -26,12 +26,6 @@
                 <Expander Header="Accounts">
                     <ContentControl Content="{Binding AccountsSettingsViewModel}" />
                 </Expander>
-                <Expander Header="Connect">
-                    <ContentControl Content="{Binding ConnectSettingsViewModel}" />
-                </Expander>
-                <Expander Header="Sessions">
-                    <ContentControl Content="{Binding SessionsSettingsViewModel}" />
-                </Expander>
                 <Expander Header="Http Proxy">
                     <ContentControl Content="{Binding HttpProxySettingsViewModel}" />
                 </Expander>

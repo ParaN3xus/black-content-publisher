@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using VRChatContentPublisher.ConnectCore.Exceptions;
 using VRChatContentPublisher.ConnectCore.Services.PublishTask;
+using VRChatContentPublisher.Core.Models.VRChatApi;
 using VRChatContentPublisher.Core.Services.PublishTask.ContentPublisher;
 using VRChatContentPublisher.Core.Services.UserSession;
 
@@ -18,6 +19,7 @@ public sealed class AvatarPublishTaskService(
         string name,
         string platform,
         string unityVersion,
+        string? authorId,
         string? thumbnailFileId,
         string? description,
         string[]? tags,
@@ -25,7 +27,7 @@ public sealed class AvatarPublishTaskService(
     {
         try
         {
-            var userSession = await GetUserSessionByAvatarIdAsync(avatarId);
+            var userSession = await GetUserSessionByAvatarIdAsync(avatarId, authorId);
             var scope = await userSession.CreateOrGetSessionScopeAsync();
 
             var taskManager = scope.ServiceProvider.GetRequiredService<TaskManagerService>();
@@ -43,17 +45,38 @@ public sealed class AvatarPublishTaskService(
         }
     }
 
-    public async ValueTask<UserSessionService> GetUserSessionByAvatarIdAsync(string avatarId)
+    public async ValueTask<UserSessionService> GetUserSessionByAvatarIdAsync(string avatarId, string? requestUserId = null)
     {
         if (!userSessionManagerService.IsAnySessionAvailable)
             throw new NoUserSessionAvailableException();
+
+        if (requestUserId is not null)
+        {
+            if (userSessionManagerService.Sessions
+                    .FirstOrDefault(session => session.UserId == requestUserId) is not { } requestSession)
+                throw new ArgumentException("The specified user session was not found.", nameof(requestUserId));
+
+            try
+            {
+                var avatar = await requestSession.GetApiClient().GetAvatarAsync(avatarId);
+                if (avatar.AuthorId != requestUserId)
+                    throw new ArgumentException("The specified user does not own the avatar.", nameof(requestUserId));
+            }
+            catch (ApiErrorException ex) when (ex.StatusCode == 404)
+            {
+                // If the avatar does not exist, continue with the selected account and create it.
+                return requestSession;
+            }
+
+            return requestSession;
+        }
 
         foreach (var session in userSessionManagerService.Sessions)
         {
             try
             {
-                var world = await session.GetApiClient().GetAvatarAsync(avatarId);
-                if (world.AuthorId != session.UserId)
+                var avatar = await session.GetApiClient().GetAvatarAsync(avatarId);
+                if (avatar.AuthorId != session.UserId)
                     continue;
 
                 return session;

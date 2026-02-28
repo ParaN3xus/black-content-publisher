@@ -1,0 +1,323 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:homeTab="clr-namespace:VRChatContentPublisher.App.ViewModels.Pages.HomeTab"
+             xmlns:assists="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+             xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:material="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="homeTab:HomeManualUploadPageViewModel"
+             x:Class="VRChatContentPublisher.App.Pages.HomeTab.HomeManualUploadPage">
+
+    <UserControl.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="Theme" Value="{StaticResource OutlineTextBox}" />
+            <Setter Property="UseFloatingWatermark" Value="True" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="MinHeight" Value="34" />
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="Theme" Value="{StaticResource MaterialOutlineComboBox}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="MinHeight" Value="34" />
+        </Style>
+        <Style Selector="material|FloatingButton.compact">
+            <Setter Property="IsExtended" Value="True" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="VerticalAlignment" Value="Bottom" />
+        </Style>
+        <Style Selector="material|FloatingButton.action">
+            <Setter Property="IsExtended" Value="True" />
+            <Setter Property="Padding" Value="16,0" />
+        </Style>
+        <Style Selector="Button.comboInlineAction">
+            <Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,8,34,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+        </Style>
+    </UserControl.Styles>
+
+    <Interaction.Behaviors>
+        <AttachedToVisualTreeTrigger>
+            <InvokeCommandAction Command="{Binding LoadCommand}" />
+        </AttachedToVisualTreeTrigger>
+        <DetachedFromVisualTreeTrigger>
+            <InvokeCommandAction Command="{Binding UnloadCommand}" />
+        </DetachedFromVisualTreeTrigger>
+    </Interaction.Behaviors>
+
+    <ScrollViewer>
+        <Border Padding="20">
+            <StackPanel Spacing="16">
+                <TextBlock Text="Manual Upload" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="Upload world/avatar bundles and metadata without Unity editor integration."
+                           Opacity="0.75"
+                           TextWrapping="Wrap" />
+
+                <Border Padding="12" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="1" CornerRadius="8">
+                    <StackPanel Spacing="6">
+                        <ComboBox assists:ComboBoxAssist.Label="Active Account"
+                                  ItemsSource="{Binding WorldAuthorAccounts}"
+                                  SelectedItem="{Binding SelectedWorldAuthorAccount}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="homeTab:ManualAuthorAccountOption">
+                                    <TextBlock Text="{Binding DisplayName}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Text="Used for author id and loading account-owned worlds/avatars."
+                                   FontSize="12"
+                                   Opacity="0.7"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Expander Header="World Upload" IsExpanded="{Binding IsWorldUploadExpanded}">
+                    <Border Padding="16">
+                        <StackPanel Spacing="12">
+                            <Grid>
+                                <ComboBox assists:ComboBoxAssist.Label="Existing World"
+                                          ItemsSource="{Binding ExistingWorlds}"
+                                          SelectedItem="{Binding SelectedExistingWorld}"
+                                          Padding="16,8,48,8"
+                                          FontSize="13">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate x:DataType="homeTab:ManualExistingWorldOption">
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <Button Classes="comboInlineAction"
+                                        ToolTip.Tip="Refresh worlds"
+                                        Command="{Binding RefreshExistingWorldsCommand}"
+                                        IsEnabled="{Binding !IsLoadingExistingWorlds}">
+                                    <avalonia:MaterialIcon Kind="Refresh" />
+                                </Button>
+                            </Grid>
+                            <TextBlock Text="{Binding ExistingWorldsStatusMessage}"
+                                       FontSize="12"
+                                       Opacity="0.7"
+                                       TextWrapping="Wrap" />
+
+                            <Separator />
+
+                            <TextBox Classes="outline" Text="{Binding WorldBundlePath}"
+                                     assists:TextFieldAssist.Label="World Bundle"
+                                     Watermark="/path/to/world.vrcw"
+                                     DragDrop.AllowDrop="True"
+                                     DragDrop.DragOver="OnFileDragOver"
+                                     DragDrop.Drop="OnWorldBundleDrop" />
+
+                            <TextBox Classes="outline" Text="{Binding WorldThumbnailPath}"
+                                     assists:TextFieldAssist.Label="Thumbnail"
+                                     Watermark="/path/to/thumbnail.png"
+                                     DragDrop.AllowDrop="True"
+                                     DragDrop.DragOver="OnFileDragOver"
+                                     DragDrop.Drop="OnWorldThumbnailDrop" />
+
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <TextBox Classes="outline" Grid.Column="0"
+                                         Text="{Binding WorldId}"
+                                         assists:TextFieldAssist.Label="World ID" />
+                                <material:FloatingButton Grid.Column="1"
+                                                         Classes="compact"
+                                                         ToolTip.Tip="Generate world id"
+                                                         Command="{Binding GenerateWorldIdCommand}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <avalonia:MaterialIcon Kind="PackageVariantClosedPlus" />
+                                        <TextBlock Text="New" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </material:FloatingButton>
+                            </Grid>
+
+                            <TextBox Classes="outline" Text="{Binding WorldName}" assists:TextFieldAssist.Label="World Name" />
+
+                            <ComboBox assists:ComboBoxAssist.Label="Platform"
+                                      ItemsSource="{Binding PlatformCandidates}"
+                                      SelectedItem="{Binding WorldPlatform}"
+                                      FontSize="13" />
+
+                            <CheckBox IsChecked="{Binding UseCustomWorldUnityVersion}" Content="Custom Unity Version" />
+                            <ComboBox assists:ComboBoxAssist.Label="Unity Version"
+                                      ItemsSource="{Binding UnityVersionCandidates}"
+                                      SelectedItem="{Binding SelectedWorldUnityVersion}"
+                                      IsEnabled="{Binding !UseCustomWorldUnityVersion}"
+                                      FontSize="13" />
+                            <TextBox Classes="outline" Text="{Binding CustomWorldUnityVersion}"
+                                     IsVisible="{Binding UseCustomWorldUnityVersion}"
+                                     assists:TextFieldAssist.Label="Custom Unity"
+                                     Watermark="2022.3.22f1" />
+
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <TextBox Classes="outline" Grid.Column="0"
+                                         Text="{Binding WorldSignature}"
+                                         assists:TextFieldAssist.Label="wrld_sig" />
+                                <material:FloatingButton Grid.Column="1"
+                                                         Classes="compact"
+                                                         ToolTip.Tip="Compute signature"
+                                                         Command="{Binding ComputeWorldSignatureCommand}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <avalonia:MaterialIcon Kind="Calculator" />
+                                        <TextBlock Text="Compute" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </material:FloatingButton>
+                            </Grid>
+
+                            <CheckBox IsChecked="{Binding IsInitialWorldCreation}"
+                                      Content="Initial world creation (init)" />
+                            <TextBlock Text="Init requires thumbnail, capacity, rec capacity, release status, and description."
+                                       FontSize="12"
+                                       Opacity="0.7"
+                                       TextWrapping="Wrap" />
+
+                            <TextBox Classes="outline" Text="{Binding WorldDescription}"
+                                     assists:TextFieldAssist.Label="Description"
+                                     AcceptsReturn="True"
+                                     MinHeight="72"
+                                     TextWrapping="Wrap" />
+
+                            <TextBox Classes="outline" Text="{Binding WorldTags}"
+                                     assists:TextFieldAssist.Label="Tags CSV"
+                                     Watermark="tagA,tagB,tagC" />
+
+                            <Grid>
+                                <ComboBox assists:ComboBoxAssist.Label="Release Status"
+                                          ItemsSource="{Binding ReleaseStatusCandidates}"
+                                          SelectedItem="{Binding WorldReleaseStatus}"
+                                          Padding="16,8,48,8"
+                                          FontSize="13" />
+                                <Button Classes="comboInlineAction"
+                                        ToolTip.Tip="Clear release status"
+                                        Command="{Binding ClearWorldReleaseStatusCommand}">
+                                    <avalonia:MaterialIcon Kind="CloseCircleOutline" />
+                                </Button>
+                            </Grid>
+
+                            <TextBox Classes="outline" Text="{Binding WorldCapacity}" assists:TextFieldAssist.Label="Capacity" />
+
+                            <TextBox Classes="outline" Text="{Binding WorldRecommendedCapacity}"
+                                     assists:TextFieldAssist.Label="Rec Capacity" />
+
+                            <TextBox Classes="outline" Text="{Binding WorldPreviewYoutubeId}"
+                                     assists:TextFieldAssist.Label="Preview YouTube ID" />
+
+                            <TextBox Classes="outline" Text="{Binding WorldUdonProducts}"
+                                     assists:TextFieldAssist.Label="Udon Products CSV"
+                                     Watermark="prod_xxx,prod_yyy" />
+
+                            <Button Theme="{StaticResource MaterialOutlineButton}"
+                                    Content="{avalonia:MaterialIconTextExt Kind=ProgressUpload, Text=Upload World}"
+                                    Command="{Binding SubmitWorldCommand}"
+                                    IsEnabled="{Binding !IsWorldSubmitting}" />
+                            <TextBlock Text="{Binding WorldValidationMessage}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                </Expander>
+
+                <Expander Header="Avatar Upload" IsExpanded="{Binding IsAvatarUploadExpanded}">
+                    <Border Padding="16">
+                        <StackPanel Spacing="12">
+                            <Grid>
+                                <ComboBox assists:ComboBoxAssist.Label="Existing Avatar"
+                                          ItemsSource="{Binding ExistingAvatars}"
+                                          SelectedItem="{Binding SelectedExistingAvatar}"
+                                          Padding="16,8,48,8"
+                                          FontSize="13">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate x:DataType="homeTab:ManualExistingAvatarOption">
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <Button Classes="comboInlineAction"
+                                        ToolTip.Tip="Refresh avatars"
+                                        Command="{Binding RefreshExistingAvatarsCommand}"
+                                        IsEnabled="{Binding !IsLoadingExistingAvatars}">
+                                    <avalonia:MaterialIcon Kind="Refresh" />
+                                </Button>
+                            </Grid>
+                            <TextBlock Text="{Binding ExistingAvatarsStatusMessage}"
+                                       FontSize="12"
+                                       Opacity="0.7"
+                                       TextWrapping="Wrap" />
+
+                            <Separator />
+
+                            <TextBox Classes="outline" Text="{Binding AvatarBundlePath}"
+                                     assists:TextFieldAssist.Label="Avatar Bundle"
+                                     Watermark="/path/to/avatar.vrca"
+                                     DragDrop.AllowDrop="True"
+                                     DragDrop.DragOver="OnFileDragOver"
+                                     DragDrop.Drop="OnAvatarBundleDrop" />
+
+                            <TextBox Classes="outline" Text="{Binding AvatarThumbnailPath}"
+                                     assists:TextFieldAssist.Label="Thumbnail"
+                                     Watermark="/path/to/thumbnail.png"
+                                     DragDrop.AllowDrop="True"
+                                     DragDrop.DragOver="OnFileDragOver"
+                                     DragDrop.Drop="OnAvatarThumbnailDrop" />
+
+                            <TextBox Classes="outline" Text="{Binding AvatarId}" assists:TextFieldAssist.Label="Avatar ID" />
+
+                            <TextBox Classes="outline" Text="{Binding AvatarName}" assists:TextFieldAssist.Label="Avatar Name" />
+
+                            <ComboBox assists:ComboBoxAssist.Label="Platform"
+                                      ItemsSource="{Binding PlatformCandidates}"
+                                      SelectedItem="{Binding AvatarPlatform}"
+                                      FontSize="13" />
+
+                            <CheckBox IsChecked="{Binding UseCustomAvatarUnityVersion}" Content="Custom Unity Version" />
+                            <ComboBox assists:ComboBoxAssist.Label="Unity Version"
+                                      ItemsSource="{Binding UnityVersionCandidates}"
+                                      SelectedItem="{Binding SelectedAvatarUnityVersion}"
+                                      IsEnabled="{Binding !UseCustomAvatarUnityVersion}"
+                                      FontSize="13" />
+                            <TextBox Classes="outline" Text="{Binding CustomAvatarUnityVersion}"
+                                     IsVisible="{Binding UseCustomAvatarUnityVersion}"
+                                     assists:TextFieldAssist.Label="Custom Unity"
+                                     Watermark="2022.3.22f1" />
+
+                            <CheckBox IsChecked="{Binding IsInitialAvatarCreation}"
+                                      Content="Initial avatar creation (init)" />
+
+                            <TextBox Classes="outline" Text="{Binding AvatarDescription}"
+                                     assists:TextFieldAssist.Label="Description"
+                                     AcceptsReturn="True"
+                                     MinHeight="72"
+                                     TextWrapping="Wrap" />
+
+                            <TextBox Classes="outline" Text="{Binding AvatarTags}"
+                                     assists:TextFieldAssist.Label="Tags CSV"
+                                     Watermark="tagA,tagB" />
+
+                            <Grid>
+                                <ComboBox assists:ComboBoxAssist.Label="Release Status"
+                                          ItemsSource="{Binding ReleaseStatusCandidates}"
+                                          SelectedItem="{Binding AvatarReleaseStatus}"
+                                          Padding="16,8,48,8"
+                                          FontSize="13" />
+                                <Button Classes="comboInlineAction"
+                                        ToolTip.Tip="Clear release status"
+                                        Command="{Binding ClearAvatarReleaseStatusCommand}">
+                                    <avalonia:MaterialIcon Kind="CloseCircleOutline" />
+                                </Button>
+                            </Grid>
+
+                            <Button Theme="{StaticResource MaterialOutlineButton}"
+                                    Content="{avalonia:MaterialIconTextExt Kind=ProgressUpload, Text=Upload Avatar}"
+                                    Command="{Binding SubmitAvatarCommand}"
+                                    IsEnabled="{Binding !IsAvatarSubmitting}" />
+                            <TextBlock Text="{Binding AvatarValidationMessage}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                </Expander>
+            </StackPanel>
+        </Border>
+    </ScrollViewer>
+</UserControl>

@@ -93,7 +93,16 @@ public sealed class AvatarContentPublisher : IContentPublisher
         _logger.LogInformation("Publish Avatar {AvatarId}", _avatarId);
         progressReporter?.Report("Fetching avatar detail...");
 
-        var avatar = await _apiClient.GetAvatarAsync(_avatarId, cancellationToken);
+        VRChatApiAvatar? avatar = null;
+        try
+        {
+            avatar = await _apiClient.GetAvatarAsync(_avatarId, cancellationToken);
+        }
+        catch (ApiErrorException ex) when (ex.StatusCode == 404)
+        {
+            _logger.LogInformation(ex, "The avatar {AvatarId} was not found. Will create new avatar.", _avatarId);
+        }
+
         var fileId = await GetOrCreateBundleFileIdAsync(avatar);
 
         // Step 2. Create and upload a new file version
@@ -137,22 +146,49 @@ public sealed class AvatarContentPublisher : IContentPublisher
             imageUri = imageFileVersion.File.Url;
         }
 
-        // Step 3. Update Avatar
-        _logger.LogInformation("Updating avatar {AvatarId} to use new file version {Version}", _avatarId,
-            fileVersion.Version);
-        progressReporter?.Report("Updating avatar to latest asset version...");
+        if (avatar is not null)
+        {
+            // Step 3. Update Avatar
+            _logger.LogInformation("Updating avatar {AvatarId} to use new file version {Version}", _avatarId,
+                fileVersion.Version);
+            progressReporter?.Report("Updating avatar to latest asset version...");
 
-        await _apiClient.CreateAvatarVersionAsync(_avatarId, new CreateAvatarVersionRequest(
-            _name,
-            fileVersion.File.Url,
-            1,
-            _platform,
-            _unityVersion,
-            imageUri,
-            description,
-            tags,
-            releaseStatus
-        ), cancellationToken);
+            await _apiClient.CreateAvatarVersionAsync(_avatarId, new CreateAvatarVersionRequest(
+                _name,
+                fileVersion.File.Url,
+                1,
+                _platform,
+                _unityVersion,
+                imageUri,
+                description,
+                tags,
+                releaseStatus
+            ), cancellationToken);
+        }
+        else
+        {
+            if (imageUri is null)
+                throw new ArgumentException(
+                    "Thumbnail is required for initial avatar creation.",
+                    nameof(thumbnailFileId));
+
+            _logger.LogInformation("Creating new avatar {AvatarId} with file version {Version}", _avatarId,
+                fileVersion.Version);
+            progressReporter?.Report("Creating new avatar...");
+
+            await _apiClient.CreateAvatarAsync(new CreateAvatarRequest(
+                _avatarId,
+                _name,
+                fileVersion.File.Url,
+                1,
+                _platform,
+                _unityVersion,
+                imageUri,
+                description,
+                tags,
+                releaseStatus
+            ), cancellationToken);
+        }
 
         _logger.LogInformation("Successfully published avatar {AvatarId}", _avatarId);
     }
@@ -168,16 +204,19 @@ public sealed class AvatarContentPublisher : IContentPublisher
         return platformApiUnityPackage;
     }
 
-    private async ValueTask<string> GetOrCreateBundleFileIdAsync(VRChatApiAvatar apiAvatar)
+    private async ValueTask<string> GetOrCreateBundleFileIdAsync(VRChatApiAvatar? apiAvatar)
     {
-        var platformApiUnityPackage = TryGetUnityPackageForPlatform(apiAvatar);
-        if (platformApiUnityPackage is not null)
+        if (apiAvatar is not null)
         {
-            var fileId = VRChatApiFlieUtils.TryGetFileIdFromAssetUrl(platformApiUnityPackage.AssetUrl);
-            if (fileId is null)
-                throw new UnexpectedApiBehaviourException("Api returned an invalid asset url.");
+            var platformApiUnityPackage = TryGetUnityPackageForPlatform(apiAvatar);
+            if (platformApiUnityPackage is not null)
+            {
+                var fileId = VRChatApiFlieUtils.TryGetFileIdFromAssetUrl(platformApiUnityPackage.AssetUrl);
+                if (fileId is null)
+                    throw new UnexpectedApiBehaviourException("Api returned an invalid asset url.");
 
-            return fileId;
+                return fileId;
+            }
         }
 
         var fileName = $"Avatar - {_name} - Asset bundle - {_unityVersion}-{_platform}";
@@ -185,9 +224,9 @@ public sealed class AvatarContentPublisher : IContentPublisher
         return file.Id;
     }
 
-    private async ValueTask<string> GetOrCreateBundleImageIdAsync(VRChatApiAvatar apiAvatar, string imageFileName)
+    private async ValueTask<string> GetOrCreateBundleImageIdAsync(VRChatApiAvatar? apiAvatar, string imageFileName)
     {
-        if (apiAvatar.ImageUrl is not null)
+        if (apiAvatar?.ImageUrl is not null)
         {
             var fileId = VRChatApiFlieUtils.TryGetFileIdFromAssetUrl(apiAvatar.ImageUrl);
             if (fileId is null)

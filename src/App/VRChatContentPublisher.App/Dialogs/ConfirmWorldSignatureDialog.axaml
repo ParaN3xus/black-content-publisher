@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:dialogs="clr-namespace:VRChatContentPublisher.App.ViewModels.Dialogs"
+             mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="220"
+             x:DataType="dialogs:ConfirmWorldSignatureDialogViewModel"
+             x:Class="VRChatContentPublisher.App.Dialogs.ConfirmWorldSignatureDialog">
+
+    <StackPanel Spacing="16" Margin="8">
+        <TextBlock Text="World signature is empty. Compute it from the selected .vrcw bundle now?"
+                   TextWrapping="Wrap"
+                   FontWeight="SemiBold"
+                   FontSize="16" />
+        <TextBlock Text="Selecting No will continue upload without wrld_sig."
+                   TextWrapping="Wrap"
+                   Opacity="0.75" />
+        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+            <Button Content="Compute"
+                    Classes="accent"
+                    Command="{Binding ComputeCommand}" />
+            <Button Grid.Column="1"
+                    Content="Continue Without Sig"
+                    Theme="{StaticResource MaterialOutlineButton}"
+                    Command="{Binding ContinueWithoutSignatureCommand}" />
+            <Button Grid.Column="2"
+                    Content="Cancel Upload"
+                    Theme="{StaticResource MaterialFlatButton}"
+                    Command="{Binding CancelUploadCommand}" />
+        </Grid>
+    </StackPanel>
+</UserControl>
