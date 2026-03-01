@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using VRChatContentPublisher.BundleProcessCore.Models;
 using VRChatContentPublisher.BundleProcessCore.Services;
 using VRChatContentPublisher.ConnectCore.Exceptions;
 using VRChatContentPublisher.ConnectCore.Services;
@@ -167,60 +166,13 @@ public sealed class ContentPublishTaskService
     private async ValueTask ProcessBundleAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation(
-            "Processing bundle file {BundleFileId} for content ({ContentId}) {ContentPlatform} {ContentName}",
+            "Skipping bundle processing and using raw bundle {BundleFileId} for content ({ContentId}) {ContentPlatform} {ContentName}",
             _rawBundleFileId, ContentId, ContentPlatform, ContentName);
 
-        using (StopwatchScope.Enter(watch => _logger.LogInformation(
-                   "Bundle file {BundleFileId} processing for content ({ContentId}) {ContentPlatform} {ContentName} took {ElapsedMilliseconds} ms",
-                   _rawBundleFileId, ContentId, ContentPlatform, ContentName, watch.ElapsedMilliseconds)))
-        {
-            var progressReporter = new PublishStageProgressReporter((message, progress) =>
-            {
-                _logger.LogInformation("Bundle Processing: {Message} ({Progress:P2})", message, progress);
-                _progressReporter.Report(message, progress);
-            });
-
-            await using var rawBundleStream = await _tempFileService.GetFileAsync(_rawBundleFileId);
-            if (rawBundleStream is null)
-                throw new FileNotFoundException("Raw bundle file not found.", _rawBundleFileId);
-
-            var outputBundleFile = await _tempFileService.GetUploadFileStreamAsync("processed_bundle.bundle");
-            try
-            {
-                await using var outputBundleFileStream = outputBundleFile.FileStream;
-
-                var processOptions = ContentType switch
-                {
-                    "world" => new WorldBundleProcessOptions(ContentId, []),
-                    "avatar" => new AvatarBundleProcessOptions(ContentId, []),
-                    _ => new BundleProcessOptions(ContentId, [])
-                };
-
-                await _bundleProcessService.ProcessBundleAsync(
-                    rawBundleStream,
-                    outputBundleFileStream,
-                    processOptions,
-                    progressReporter,
-                    cancellationToken);
-
-                _bundleFileId = outputBundleFile.FileId;
-            }
-            catch
-            {
-                if (await _tempFileService.IsFileExistAsync(outputBundleFile.FileId))
-                    await _tempFileService.DeleteFileAsync(outputBundleFile.FileId);
-                throw;
-            }
-        }
-
-        try
-        {
-            await _tempFileService.DeleteFileAsync(_rawBundleFileId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to delete raw bundle file {BundleFileId}", _rawBundleFileId);
-        }
+        cancellationToken.ThrowIfCancellationRequested();
+        _progressReporter.Report("Skipping bundle processing and uploading original bundle...", null);
+        _bundleFileId = _rawBundleFileId;
+        await Task.CompletedTask;
     }
 
     private async ValueTask PublishAsync(CancellationToken cancellationToken)
