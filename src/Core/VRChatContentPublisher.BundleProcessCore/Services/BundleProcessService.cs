@@ -40,8 +40,8 @@ public sealed class BundleProcessService(BundleProcessPipelineOptions pipelineOp
             bundleStream = await _processPipeline.ProcessAsync(
                 bundleStream, options, progressReporter, !isTempFileCreated, cancellationToken);
 
-            // Step.3 Bundle Compress
-            await CompressBundleAsync(bundleStream, outputStream, progressReporter, !isTempFileCreated,
+            // Step.3 Write processed bundle as-is (skip recompression)
+            await WriteBundleAsIsAsync(bundleStream, outputStream, progressReporter, !isTempFileCreated,
                 cancellationToken);
         }
         finally
@@ -121,7 +121,7 @@ public sealed class BundleProcessService(BundleProcessPipelineOptions pipelineOp
         }
     }
 
-    private async ValueTask CompressBundleAsync(
+    private async ValueTask WriteBundleAsIsAsync(
         Stream stream,
         Stream outputStream,
         IProcessProgressReporter? progressReporter,
@@ -131,26 +131,15 @@ public sealed class BundleProcessService(BundleProcessPipelineOptions pipelineOp
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        progressReporter?.Report("Compressing bundle file...");
+        progressReporter?.Report("Writing processed bundle (without recompression)...");
 
-        var bundleFile = new AssetBundleFile();
+        if (stream.CanSeek)
+            stream.Position = 0;
 
-        try
-        {
-            await Task.Factory.StartNew(() =>
-                {
-                    using var bundleReader = new AssetsFileReader(stream, leaveOpen);
-                    bundleFile.Read(bundleReader);
+        await stream.CopyToAsync(outputStream, cancellationToken);
 
-                    using var writer = new AssetsFileWriter(outputStream, true);
-                    bundleFile.Pack(writer, AssetBundleCompressionType.LZMA, cancellationToken: cancellationToken);
-                }, cancellationToken, TaskCreationOptions.LongRunning,
-                TaskScheduler.Default);
-        }
-        finally
-        {
-            bundleFile.Close();
-        }
+        if (!leaveOpen)
+            stream.Close();
     }
 
     private Stream CreateTempStream()
