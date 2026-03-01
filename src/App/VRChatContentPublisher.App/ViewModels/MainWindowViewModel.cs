@@ -8,7 +8,7 @@ public partial class MainWindowViewModel : ViewModelBase, INavigationHost, IAppW
 {
     [ObservableProperty] public partial PageViewModelBase? CurrentPage { get; private set; }
 
-    [ObservableProperty] public partial bool Pinned { get; private set; }
+    [ObservableProperty] public partial bool Pinned { get; private set; } = true;
 
     public event EventHandler? RequestActivate;
 
