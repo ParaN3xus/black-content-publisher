@@ -128,6 +128,43 @@ public sealed partial class VRChatApiClient(
         return avatar;
     }
 
+    public async ValueTask<IReadOnlyList<VRChatApiAvatar>> GetMyAvatarsAsync(
+        int pageSize = 100,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (pageSize <= 0)
+            throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be greater than zero.");
+
+        var avatars = new List<VRChatApiAvatar>();
+        var offset = 0;
+
+        while (true)
+        {
+            var response = await httpClient.GetAsync(
+                $"avatars?user=me&n={pageSize}&offset={offset}&sort=updated",
+                cancellationToken);
+
+            await HandleErrorResponseAsync(response);
+
+            var page = await response.Content.ReadFromJsonAsync(
+                ApiJsonContext.Default.VRChatApiAvatarArray,
+                cancellationToken);
+            if (page is null)
+                throw new UnexpectedApiBehaviourException("The API returned a null avatar list.");
+
+            avatars.AddRange(page);
+
+            if (page.Length < pageSize)
+                break;
+
+            offset += pageSize;
+        }
+
+        return avatars;
+    }
+
     public async ValueTask<VRChatApiAvatar> CreateAvatarVersionAsync(string avatarId,
         CreateAvatarVersionRequest createRequest, CancellationToken cancellationToken = default)
     {
@@ -164,6 +201,43 @@ public sealed partial class VRChatApiClient(
             throw new UnexpectedApiBehaviourException("The API returned a null world object.");
 
         return world;
+    }
+
+    public async ValueTask<IReadOnlyList<VRChatApiWorld>> GetMyWorldsAsync(
+        int pageSize = 100,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (pageSize <= 0)
+            throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be greater than zero.");
+
+        var worlds = new List<VRChatApiWorld>();
+        var offset = 0;
+
+        while (true)
+        {
+            var response = await httpClient.GetAsync(
+                $"worlds?user=me&n={pageSize}&offset={offset}&sort=updated",
+                cancellationToken);
+
+            await HandleErrorResponseAsync(response);
+
+            var page = await response.Content.ReadFromJsonAsync(
+                ApiJsonContext.Default.VRChatApiWorldArray,
+                cancellationToken);
+            if (page is null)
+                throw new UnexpectedApiBehaviourException("The API returned a null world list.");
+
+            worlds.AddRange(page);
+
+            if (page.Length < pageSize)
+                break;
+
+            offset += pageSize;
+        }
+
+        return worlds;
     }
 
     public async ValueTask<VRChatApiWorld> CreateWorldVersionAsync(string worldId,
