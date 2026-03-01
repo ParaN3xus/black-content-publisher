@@ -143,7 +143,7 @@ public sealed partial class VRChatApiClient(
         while (true)
         {
             var response = await httpClient.GetAsync(
-                $"avatars?user=me&n={pageSize}&offset={offset}&sort=updated",
+                $"avatars?user=me&releaseStatus=all&n={pageSize}&offset={offset}&sort=updated",
                 cancellationToken);
 
             await HandleErrorResponseAsync(response);
@@ -218,7 +218,7 @@ public sealed partial class VRChatApiClient(
         while (true)
         {
             var response = await httpClient.GetAsync(
-                $"worlds?user=me&n={pageSize}&offset={offset}&sort=updated",
+                $"worlds?user=me&releaseStatus=all&n={pageSize}&offset={offset}&sort=updated",
                 cancellationToken);
 
             await HandleErrorResponseAsync(response);
