@@ -62,7 +62,7 @@ jobs:
         with:
           tags: csproj.Version
           version: ${{ inputs.new-version}}
-          file: "\"${{ env.repo_dir }}/src/App/VRChatContentPublisher.App/VRChatContentPublisher.App.csproj\", \"${{ env.repo_dir }}/src/Core/VRChatContentPublisher.Core/VRChatContentPublisher.Core.csproj\""
+          file: '"${{ env.repo_dir }}/src/App/VRChatContentPublisher.App/VRChatContentPublisher.App.csproj", "${{ env.repo_dir }}/src/Core/VRChatContentPublisher.Core/VRChatContentPublisher.Core.csproj"'
 
       - name: Extact Release Note and Update Changelog
         working-directory: ${{ env.repo_dir }}
@@ -186,7 +186,6 @@ jobs:
           ${{ inputs.pre-release && '--prerelease' || '' }} \
           --notes-file $PATH_TO_NOTES \
           --verify-tag \
-          --fail-on-no-commits \
           v$RELEASE_VERSION \
           $PATH_TO_RELEASE_ASSETS/*
 
