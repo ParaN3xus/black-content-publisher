@@ -27,12 +27,6 @@ public sealed partial class BootstrapPageViewModel(
             );
         });
 
-        if (!appSettings.Value.SkipFirstSetup)
-        {
-            navigationService.Navigate<GuideWelcomePageViewModel>();
-            return;
-        }
-
         navigationService.Navigate<HomePageViewModel>();
     }
 }
