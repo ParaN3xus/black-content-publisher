@@ -7,6 +7,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
 using VRChatContentPublisher.App.Dialogs;
 using VRChatContentPublisher.App.Pages;
 using VRChatContentPublisher.App.Pages.HomeTab;
@@ -115,6 +116,10 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026",
+        Justification = "Avalonia startup requires removing the built-in data annotation validation plugin to avoid duplicate validation with CommunityToolkit.")]
     private void DisableAvaloniaDataAnnotationValidation()
     {
         // Get an array of plugins to remove

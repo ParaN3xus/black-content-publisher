@@ -14,7 +14,7 @@ public partial class HomeManualUploadPage : UserControl
 
     private void OnFileDragOver(object? sender, DragEventArgs e)
     {
-        e.DragEffects = e.Data.Contains(DataFormats.Files)
+        e.DragEffects = e.DataTransfer.Contains(DataFormat.File)
             ? DragDropEffects.Copy
             : DragDropEffects.None;
 
@@ -84,7 +84,7 @@ public partial class HomeManualUploadPage : UserControl
     {
         path = string.Empty;
 
-        var files = e.Data.GetFiles();
+        var files = e.DataTransfer.TryGetFiles();
         if (files is null)
             return false;
 

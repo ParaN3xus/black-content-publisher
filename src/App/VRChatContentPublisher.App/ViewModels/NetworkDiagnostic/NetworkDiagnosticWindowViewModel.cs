@@ -91,7 +91,7 @@ public sealed partial class NetworkDiagnosticWindowViewModel(
 
             StatusPageComponents.AddRange(components);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
         }
     }
